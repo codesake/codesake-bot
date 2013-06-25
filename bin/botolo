@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'codesake-bot'
+
+bot = Codesake::Bot::Engine.new({:filename=>"./conf/config.yaml"})
+puts "#{bot.name} is online" if bot.online?
+puts "#{bot.name} is offline" unless bot.online?
+
