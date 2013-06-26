@@ -1,8 +1,23 @@
 #!/usr/bin/env ruby
 
 require 'codesake-bot'
+require 'codesake_commons'
 
-bot = Codesake::Bot::Engine.new({:filename=>"./conf/config.yaml"})
-puts "#{bot.name} is online" if bot.online?
-puts "#{bot.name} is offline" unless bot.online?
+DEFAULT_BEHAVIOUR = "./lib/codesake/bot/behaviour.rb"
+OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+
+$logger  = Codesake::Commons::Logging.instance
+trap("INT")   { $logger.helo('bot is shutting down'); Kernel.exit(0) }
+
+behaviour_file = DEFAULT_BEHAVIOUR
+behaviour_file = ARGV[0] if ARGV.count == 1
+
+$logger.die "#{behaviour_file} doesn't exist. Giving up" if ! File.exists?(behaviour_file) and ! File.file?(behaviour_file)
+
+bot = Codesake::Bot::Engine.new({:config=>"./conf/config.yaml", :behaviour=>behaviour_file})
+$logger.log "#{bot.name} is online" if bot.online?
+$logger.log "#{bot.name} is offline" unless bot.online?
+bot.run if bot.online?
+
+
 

@@ -12,10 +12,57 @@ module Codesake
       def initialize(options={})
         @start_time = Time.now
         @online = false
-        @config = read_conf(options[:filename])
+        @config = read_conf(options[:config])
         authenticate
+        @tasks = @config['task']
+        behaviour = options[:behaviour]
+        behaviour = File.join(".", "lib", "codesake", "bot", "behaviour", @config['bot']['behaviour']) unless @config['bot']['behaviour'].nil? 
+
+        $logger.helo "#{name} v#{version} is starting up"
+        
+        begin
+          load behaviour
+          $logger.log "using #{behaviour} as bot behaviour"
+          @behaviour = Codesake::Bot::Behaviour.new({:name=>name})
+        rescue LoadError => e
+          $logger.err(e.message)
+          require 'codesake/bot/behaviour'
+          $logger.log "reverting to default dummy behaviour"
+          @behaviour = Codesake::Bot::Behaviour.new({:name=>name})
+        end
+
+
       end
 
+      def calc_sleep_time(task)
+        
+        s = /every (\d) (s|m|h|d|w|y)/.match task
+
+        return 300 if s.nil? # safe fallback is 5 minutes sleeping
+
+        return s[1].to_i                         if s[2] == 's'
+        return s[1].to_i * 60                    if s[2] == 'm'
+        return s[1].to_i * 60 * 60               if s[2] == 'h'
+        return s[1].to_i * 60 * 60 * 24          if s[2] == 'd'
+        return s[1].to_i * 60 * 60 * 24 * 7      if s[2] == 'w'
+        return s[1].to_i * 60 * 60 * 24 * 7 * 52 if s[2] == 'y'
+
+      end
+
+      def run
+        $logger.log "entering main loop"
+        while true
+          @tasks.each do |task|
+            begin 
+            @behaviour.send(task["action"].to_sym) if @behaviour.respond_to? task["action"].to_sym
+            rescue => e
+              $logger.err "#{task["action"]} failed (#{e.message})"
+            end
+            sleep calc_sleep_time(task["schedule"])
+          end
+        end
+
+      end
       def authenticate
         begin
           Twitter.configure do |config|
@@ -26,7 +73,7 @@ module Codesake
           end
           @online = true
         rescue Exception => e
-          puts e.message
+          $logger.err e.message
         end
       end
 
@@ -36,6 +83,9 @@ module Codesake
 
       def name
         return @config['bot']['name']
+      end
+      def version
+        return @config['bot']['version']
       end
 
       def uptime
