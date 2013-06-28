@@ -1,0 +1,19 @@
+verbose: true
+
+bot:
+  name: mydummy-bot
+  version: 1.0
+  email: bot@codesake.com
+  # This overrides any behaviour file passed as argument
+  behaviour: behaviour.rb
+
+twitter:
+  name: codesake
+  consumer_key: register an application to dev.twitter.com and put the value here
+  consumer_secret: register an application to dev.twitter.com and put the value here
+  oauth_token: register an application to dev.twitter.com and put the value here
+  oauth_token_secret: register an application to dev.twitter.com and put the value here
+
+task:
+  - { schedule: every 10 m, action: say_hello }
+
