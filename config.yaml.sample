@@ -8,6 +8,7 @@ bot:
   behaviour: behaviour.rb
 
 twitter:
+  enabled: yes
   name: codesake
   consumer_key: register an application to dev.twitter.com and put the value here
   consumer_secret: register an application to dev.twitter.com and put the value here
