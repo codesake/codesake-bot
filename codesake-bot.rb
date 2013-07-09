@@ -13,6 +13,7 @@ module Botolo
       property :requested_by, String, :required => true
       property :url,          String, :required => true
       property :text,         String
+      property :processed,    Boolean, :default=>false
       property :created_at,   DateTime, :default=>DateTime.now
       property :updated_at,   DateTime, :default=>DateTime.now
     end
@@ -26,6 +27,11 @@ module Botolo
         end
       end
 
+      def dump_requests
+        Request.all.each do |r|
+          $logger.log("#{r.requested_by} requests a scan to #{r.url} on #{r.created_at.strftime("%d/%m/%Y - %H:%M")}. Processed: #{r.processed}")
+        end
+      end
       def find_helobot
         Twitter.search("to: codesake #helobot", :result_type => "recent").results.map do |status|
           $logger.log("saying hello to #{status.from_user} (original tweet: #{status.text}")
