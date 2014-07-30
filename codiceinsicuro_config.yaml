@@ -1,0 +1,26 @@
+verbose: true
+
+bot:
+  name: codiceinsicuro-bot
+  version: 1.0
+  email: paolo@codiceinsicuro.it
+  # This overrides any behaviour file passed as argument
+  behaviour: codiceinsicuro-bot.rb
+  db:
+    enabled:  false
+    adapter:  'sqlite3'
+    db_name:  
+
+twitter:
+  enabled: true
+  name: codiceinsicuro
+  consumer_key: "P9Dbj1WdIGIUjapVWh2l6zmRh"
+  consumer_secret: "OkGdjUUgPnjBmxP0rrVpiAqGJM1bAiEANTwKUTeyED0kPxECuW"
+  oauth_token: "106102603-4VvQqnCVOMD3OH6ZjItS19KafZ6mTrbF5azouInP"
+  oauth_token_secret: "NNRSgqQE8fzS7HY6Z9iaa4W1XkN7nS6oeiNEkDA4DOpqj"
+
+task:
+  - { schedule: every 1 d, action: say_links }
+  - { schedule: every 1 d, action: refresh_rss }
+  - { schedule: every 1 d, action: mark }
+  - { schedule: every 3 h, action: show_random_posts }
