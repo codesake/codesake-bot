@@ -6,6 +6,7 @@ module Botolo
   module Bot
     # DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/scan_with_dawn.rb")
 
+
     class Request
       include DataMapper::Resource
 
@@ -17,8 +18,9 @@ module Botolo
       property :created_at,   DateTime, :default=>DateTime.now
       property :updated_at,   DateTime, :default=>DateTime.now
     end
-    
+
     class Behaviour
+
       def initialize(options={})
         if ! options.empty? and ! options['bot']['db'].nil? and options['bot']['db']['enabled']
           DataMapper.setup(:default, "sqlite3://#{File.join(Dir.pwd, options['bot']['db']['db_name'])}")
@@ -33,12 +35,12 @@ module Botolo
         end
       end
       def find_helobot
-        Twitter.search("to: codesake #helobot", :result_type => "recent").results.map do |status|
-          $logger.log("saying hello to #{status.from_user} (original tweet: #{status.text}")
+        $twitter_client.search("@codesake #helobot", :result_type => "recent").map do |status|
+          $logger.log("saying hello to #{status.user.name} (@#{status.user.screen_name}) original tweet: #{status.text}")
           begin
-            Twitter.update("Hey @#{status.from_user}, what's going on? Tweet your url with #scanwithdawn to have it reviewed")
+            $twitter_client.update("Hey @#{status.user.screen_name}, what's going on? Tweet your url with #scanwithdawn to have it reviewed")
           rescue => e
-            $logger.err("error tweeting #{message}: #{e.message}")
+            $logger.err("error tweeting: #{e.message}")
           end
 
         end
@@ -47,7 +49,7 @@ module Botolo
 
       # https://github.com/codesake/codesake_dawn => https://t.co/vqZF4NpA7X
       def find_scanwithdawn
-        Twitter.search("#scanwithdawn -rt").results.each do |tweet|
+        $twitter_client.search("#scanwithdawn -rt").each do |tweet|
           regexp = /https?:\/\/[\S]+/
           if ! regexp.match(tweet.text).nil?
             r = Botolo::Bot::Request.first(:url=>regexp.match(tweet.text))
@@ -80,13 +82,13 @@ module Botolo
           "Hey, check http://codesake.com. It will soon open to beta testers #dawnscanner #appsec services for #padrino #codesake_bot", 
           "Did you know that #dawnscanner can make code reviews for web applications written in #rails, #sinatra and #padrino too? #codesake_bot",
           "Did you know that #dawnscanner has more than 56 #cve #security checks? Run dawn -k and discover all of them #codesake_bot",
-          "Do you care about your web application security? Follow both @codesake and @armoredcode #codesake_bot", 
+          "Do you care about your web application security? Follow both @codesake and @codiceinsicuro #codesake_bot", 
           "If you care about your web application security you should really install #dawnscanner. Run gem install codesake-dawn now #codesake_bot",
         ]
-          
+
         message = fortunes[SecureRandom.random_number(fortunes.size)]
         begin
-          Twitter.update(message)
+          $twitter_client.update(message)
           $logger.log(message)
         rescue => e
           $logger.err("error tweeting #{message}: #{e.message}")
