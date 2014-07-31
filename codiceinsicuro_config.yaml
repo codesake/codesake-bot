@@ -7,20 +7,21 @@ bot:
   # This overrides any behaviour file passed as argument
   behaviour: codiceinsicuro-bot.rb
   db:
-    enabled:  false
+    enabled:  true
     adapter:  'sqlite3'
-    db_name:  
+    db_name:  'codiceinsicuro_followers.db'
 
 twitter:
   enabled: true
   name: codiceinsicuro
-  consumer_key: "P9Dbj1WdIGIUjapVWh2l6zmRh"
-  consumer_secret: "OkGdjUUgPnjBmxP0rrVpiAqGJM1bAiEANTwKUTeyED0kPxECuW"
-  oauth_token: "106102603-4VvQqnCVOMD3OH6ZjItS19KafZ6mTrbF5azouInP"
-  oauth_token_secret: "NNRSgqQE8fzS7HY6Z9iaa4W1XkN7nS6oeiNEkDA4DOpqj"
+  consumer_key: "3otPXuCfqPkrgzywqbQp9pTXR"
+  consumer_secret: "xRhjvNyrqckLobwIGX4l9tRdDWSZmihk33k5ADmNiDgwoumMIm"
+  oauth_token: "106102603-fwLv2POZpADQA7IFPYiZoQPufM7dTPaqGgRFItoW"
+  oauth_token_secret: "WBm7zo8VI15NOoqKTwxJp95I8ro5kUKeA96c2VRHQPW88"
 
 task:
-  - { schedule: every 1 d, action: say_links }
+  - { schedule: every 1 d, action: get_info }
   - { schedule: every 1 d, action: refresh_rss }
-  - { schedule: every 1 d, action: mark }
+  - { schedule: every 6 h, action: mark }
   - { schedule: every 3 h, action: show_random_posts }
+  - { schedule: every 4 h, action: show_blog_links }

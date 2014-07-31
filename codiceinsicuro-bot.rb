@@ -1,22 +1,21 @@
 require 'data_mapper'
 require 'dm-sqlite-adapter'
 require 'securerandom'
+require 'rss'
 
 module Botolo
   module Bot
     # DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/scan_with_dawn.rb")
 
 
-    class Request
+    class Follower
       include DataMapper::Resource
 
-      property :id,           Serial
-      property :requested_by, String, :required => true
-      property :url,          String, :required => true
-      property :text,         String
-      property :processed,    Boolean, :default=>false
-      property :created_at,   DateTime, :default=>DateTime.now
-      property :updated_at,   DateTime, :default=>DateTime.now
+      property :id,             Serial
+      property :follower_name,  String, :required => true, :unique=>true
+      property :follower_id,    String, :required => true, :unique=>true
+      property :created_at,     DateTime, :default=>DateTime.now
+      property :updated_at,     DateTime, :default=>DateTime.now
     end
 
     class Behaviour
@@ -27,54 +26,84 @@ module Botolo
           DataMapper.finalize
           DataMapper.auto_migrate!
         end
+        refresh_rss
+      end
+
+      def get_info
+        f = $twitter_client.followers
+        f.each do |user|
+          u = Botolo::Bot::Follower.first(:follower_id=>user.id)
+          $logger.debug "#{u} - #{user.id}"
+          if (u.nil?)
+            $logger.debug "Adding #{user.id} - #{user.name}"
+            u = Botolo::Bot::Follower.new
+            u.follower_name = user.name
+            u.follower_id = user.id
+            u.save
+          end
+        end
+      end
+
+      def show_blog_links
+        begin
+          $twitter_client.update("Segui @codiceinsicuro il primo #blog #italiano di #sicurezza #informatica croccante fuori e morbido dentro")
+          sleep(15)
+          $twitter_client.update("Segui @codiceinsicuro su fabebook: https://www.facebook.com/codiceinsicuro")
+          sleep(15)
+        rescue => e
+          $logger.err("error tweeting #{m}: #{e.message}")
+        end
       end
 
       # Everyday bot will fetch RSS (if online) and build the post catalogue
       def refresh_rss
 
-      end
-
-      def dump_requests
-        Request.all.each do |r|
-          $logger.log("#{r.requested_by} requests a scan to #{r.url} on #{r.created_at.strftime("%d/%m/%Y - %H:%M")}. Processed: #{r.processed}")
-        end
-      end
-      def find_helobot
-        $twitter_client.search("@codesake #helobot", :result_type => "recent").map do |status|
-          $logger.log("saying hello to #{status.user.name} (@#{status.user.screen_name}) original tweet: #{status.text}")
-          begin
-            $twitter_client.update("Hey @#{status.user.screen_name}, what's going on? Tweet your url with #scanwithdawn to have it reviewed")
-          rescue => e
-            $logger.err("error tweeting: #{e.message}")
+        if @online
+          open('https://codiceinsicuro.it/feed.xml') do |http|
+            response = http.read
+            File.open('./feed.xml', 'w') do |f|
+              f.puts(response)
+            end
+            rss = RSS::Parser.parse(response, false)
           end
-
+        else
+          # Parsing a previously saved rss if available
+          $logger.debug "I'm offline, reading feed.xml from disk. Please check network connection"
+          body = ""
+          File.open('./feed.xml', 'r') do |f|
+            body = f.read
+          end
+          rss = RSS::Parser.parse(body, false)
         end
 
+        @feed = []
+
+        rss.items.each_with_index do |item, i|
+          @feed << {:title=>item.title.content, :link=>item.link.href}
+        end
+        $logger.log "#{@feed.size} elements loaded from feed"
+
+      end
+
+      def show_random_posts(limit = 3)
+        return nil if @feed.nil? || @feed.size == 0
+        (0..limit-1).each do |l|
+          post = @feed[SecureRandom.random_number(@feed.size)]
+          m = "\"#{post[:title]}\" (#{post[:link]}) #blog #sicurezza #informatica."
+          $logger.debug "#{m} - #{m.length}"
+          begin
+            $twitter_client.update(m)
+            $logger.debug "tweet sent!"
+          rescue => e
+            $logger.err("error tweeting #{m}: #{e.message}")
+          end
+          sleep(10)
+
+        end
       end
 
       def mark
         $logger.log("codiceinsicuro_bot is running with pid #{Process.pid}")
-      end
-
-      def promote_dawn
-
-        fortunes = [
-          "Hey, check http://codesake.com. It will soon open to beta testers #dawnscanner #appsec services for #sinatra #codesake_bot", 
-          "Hey, check http://codesake.com. It will soon open to beta testers #dawnscanner #appsec services for #rails #codesake_bot", 
-          "Hey, check http://codesake.com. It will soon open to beta testers #dawnscanner #appsec services for #padrino #codesake_bot", 
-          "Did you know that #dawnscanner can make code reviews for web applications written in #rails, #sinatra and #padrino too? #codesake_bot",
-          "Did you know that #dawnscanner has more than 56 #cve #security checks? Run dawn -k and discover all of them #codesake_bot",
-          "Do you care about your web application security? Follow both @codesake and @codiceinsicuro #codesake_bot", 
-          "If you care about your web application security you should really install #dawnscanner. Run gem install codesake-dawn now #codesake_bot",
-        ]
-
-        message = fortunes[SecureRandom.random_number(fortunes.size)]
-        begin
-          $twitter_client.update(message)
-          $logger.log(message)
-        rescue => e
-          $logger.err("error tweeting #{message}: #{e.message}")
-        end
       end
 
     end
