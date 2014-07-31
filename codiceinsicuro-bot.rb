@@ -33,7 +33,6 @@ module Botolo
         f = $twitter_client.followers
         f.each do |user|
           u = Botolo::Bot::Follower.first(:follower_id=>user.id)
-          $logger.debug "#{u} - #{user.id}"
           if (u.nil?)
             $logger.debug "Adding #{user.id} - #{user.name}"
             u = Botolo::Bot::Follower.new
@@ -57,6 +56,8 @@ module Botolo
 
       # Everyday bot will fetch RSS (if online) and build the post catalogue
       def refresh_rss
+        rss = nil
+
         open('https://codiceinsicuro.it/feed.xml') do |http|
           response = http.read
           File.open('./feed.xml', 'w') do |f|
