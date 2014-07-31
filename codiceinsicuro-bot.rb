@@ -24,8 +24,9 @@ module Botolo
         if ! options.empty? and ! options['bot']['db'].nil? and options['bot']['db']['enabled']
           DataMapper.setup(:default, "sqlite3://#{File.join(Dir.pwd, options['bot']['db']['db_name'])}")
           DataMapper.finalize
-          DataMapper.auto_migrate!
+          DataMapper.auto_upgrade!
         end
+        @debug = false
         refresh_rss
       end
 
@@ -58,7 +59,7 @@ module Botolo
       # Everyday bot will fetch RSS (if online) and build the post catalogue
       def refresh_rss
 
-        if @online
+        unless @debug
           open('https://codiceinsicuro.it/feed.xml') do |http|
             response = http.read
             File.open('./feed.xml', 'w') do |f|
