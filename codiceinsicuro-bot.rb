@@ -26,7 +26,6 @@ module Botolo
           DataMapper.finalize
           DataMapper.auto_upgrade!
         end
-        @debug = false
         refresh_rss
       end
 
@@ -58,24 +57,21 @@ module Botolo
 
       # Everyday bot will fetch RSS (if online) and build the post catalogue
       def refresh_rss
-
-        unless @debug
-          open('https://codiceinsicuro.it/feed.xml') do |http|
-            response = http.read
-            File.open('./feed.xml', 'w') do |f|
-              f.puts(response)
-            end
-            rss = RSS::Parser.parse(response, false)
+        open('https://codiceinsicuro.it/feed.xml') do |http|
+          response = http.read
+          File.open('./feed.xml', 'w') do |f|
+            f.puts(response)
           end
-        else
-          # Parsing a previously saved rss if available
-          $logger.debug "I'm offline, reading feed.xml from disk. Please check network connection"
-          body = ""
-          File.open('./feed.xml', 'r') do |f|
-            body = f.read
-          end
-          rss = RSS::Parser.parse(body, false)
+          rss = RSS::Parser.parse(response, false)
         end
+
+        # Parsing a previously saved rss if available
+        # $logger.debug "I'm offline, reading feed.xml from disk. Please check network connection"
+        # body = ""
+        # File.open('./feed.xml', 'r') do |f|
+        # body = f.read
+        # end
+        # rss = RSS::Parser.parse(body, false)
 
         @feed = []
 
