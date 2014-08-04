@@ -26,6 +26,7 @@ module Botolo
           DataMapper.finalize
           DataMapper.auto_upgrade!
         end
+        @start_time = Time.now
         refresh_rss
       end
 
@@ -101,9 +102,37 @@ module Botolo
       end
 
       def mark
-        $logger.log("codiceinsicuro_bot is running with pid #{Process.pid}")
+        now = Time.now
+        $logger.log("codiceinsicuro_bot is running with pid #{Process.pid}. Uptime is #{time_diff(@start_time, now)}")
       end
 
+      def promote_latest
+        return nil if @feed.nil? || @feed.size == 0
+        post = @feed[0]
+        m = "\"#{post[:title]}\" (#{post[:link]}) #blog #sicurezza #informatica."
+        $logger.debug "#{m} - #{m.length}"
+        begin
+          $twitter_client.update(m)
+          $logger.debug "latest tweet sent!"
+        rescue => e
+          $logger.err("error tweeting #{m}: #{e.message}")
+        end
+      end
+
+
+      def time_diff(start_time, end_time)
+        seconds_diff = (start_time - end_time).to_i.abs
+
+        hours = seconds_diff / 3600
+        seconds_diff -= hours * 3600
+
+        minutes = seconds_diff / 60
+        seconds_diff -= minutes * 60
+
+        seconds = seconds_diff
+
+        "h #{hours.to_s.rjust(2, '0')}:m #{minutes.to_s.rjust(2, '0')}:s #{seconds.to_s.rjust(2, '0')}"
+      end
     end
   end
 end
