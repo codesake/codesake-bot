@@ -101,14 +101,17 @@ module Botolo
         end
       end
 
-      def find_appsec
+      def find_appsec(limit = 5)
         list = $twitter_client.search("#appsec -rt")
-        t = list[SecureRandom.random_number(list.size)]
-        $logger.debug "retwitting #{m.from_user}: #{m.text}"
-        begin
-          $twitter_client.update(t)
-        rescue => e
-          $logger.err("error tweeting #{m}: #{e.message}")
+        (0..limit-1).each do |l|
+          t = list.results[SecureRandom.random_number(list.results.size)]
+          $logger.debug "retwitting #{m.from_user}: #{m.text}"
+          begin
+            $twitter_client.update(t)
+          rescue => e
+            $logger.err("error tweeting #{m}: #{e.message}")
+          end
+          sleep(15)
         end
       end
 
