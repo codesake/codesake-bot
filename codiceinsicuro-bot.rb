@@ -109,7 +109,7 @@ module Botolo
           begin
             $twitter_client.update(t)
           rescue => e
-            $logger.err("error tweeting #{m}: #{e.message}")
+            $logger.err("error tweeting #{m.text}: #{e.message}")
           end
           sleep(15)
         end
