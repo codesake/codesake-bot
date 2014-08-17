@@ -105,11 +105,11 @@ module Botolo
         list = $twitter_client.search("#appsec -rt")
         (0..limit-1).each do |l|
           t = list.to_a[SecureRandom.random_number(list.count)]
-          $logger.debug "retwitting #{t.from_user}: #{t.text}"
+          $logger.debug "retwitting #{t["from_user"]}: #{t["text"]}"
           begin
             $twitter_client.update(t)
           rescue => e
-            $logger.err("error tweeting #{t.text}: #{e.message}")
+            $logger.err("error tweeting #{t["text"]}: #{e.message}")
           end
           sleep(15)
         end
