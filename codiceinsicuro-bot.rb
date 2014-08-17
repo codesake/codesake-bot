@@ -101,6 +101,17 @@ module Botolo
         end
       end
 
+      def find_appsec
+        list = $twitter_client.search("#appsec -rt")
+        t = list[SecureRandom.random_number(list.size)]
+        $logger.debug "retwitting #{m.from_user}: #{m.text}"
+        begin
+          $twitter_client.update(t)
+        rescue => e
+          $logger.err("error tweeting #{m}: #{e.message}")
+        end
+      end
+
       def mark
         now = Time.now
         $logger.log("codiceinsicuro_bot is running with pid #{Process.pid}. Uptime is #{time_diff(@start_time, now)}")
