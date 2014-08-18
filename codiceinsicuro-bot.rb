@@ -107,7 +107,8 @@ module Botolo
           t = list.to_a[SecureRandom.random_number(list.count)]
           $logger.debug "retwitting #{t.user.screen_name]}: #{t.text}"
           begin
-            $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
+            # $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
+            $twitter_client.retweet(t)
           rescue => e
             $logger.err("error tweeting #{t.text}: #{e.message}")
           end
@@ -121,7 +122,8 @@ module Botolo
           t = list.to_a[SecureRandom.random_number(list.count)]
           $logger.debug "retwitting #{t["from_user"]}: #{t["text"]}"
           begin
-            $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
+            # $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
+            $twitter_client.retweet(t)
           rescue => e
             $logger.err("error tweeting #{t["text"]}: #{e.message}")
           end
