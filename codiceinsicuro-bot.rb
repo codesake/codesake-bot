@@ -101,7 +101,7 @@ module Botolo
         end
       end
 
-      def find_the_sp0nge_appsec(limit 5)
+      def find_the_sp0nge_appsec(limit = 5)
         list = $twitter_client.search("from:thesp0nge #appsec")
         (0..limit-1).each do |l|
           t = list.to_a[SecureRandom.random_number(list.count)]
