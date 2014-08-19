@@ -103,31 +103,36 @@ module Botolo
 
       def find_the_sp0nge_appsec(limit = 5)
         list = $twitter_client.search("from:thesp0nge #appsec")
-        (0..limit-1).each do |l|
-          t = list.to_a[SecureRandom.random_number(list.count)]
-          $logger.debug "retwitting #{t["from_user"]}: #{t["text"]}"
-          begin
-            # $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
-            $twitter_client.retweet(t)
-          rescue => e
-            $logger.err("error tweeting #{t.text}: #{e.message}")
+        unless list.nil? || list.empty? || list.to_a.nil?
+
+          (0..limit-1).each do |l|
+            t = list.to_a[SecureRandom.random_number(list.count)]
+            $logger.debug "retwitting #{t.user.screen_name}: #{t.text}"
+            begin
+              # $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
+              $twitter_client.retweet(t)
+            rescue => e
+              $logger.err("error tweeting #{t.text}: #{e.message}")
+            end
+            sleep(15)
           end
-          sleep(15)
         end
 
       end
       def find_appsec(limit = 5)
         list = $twitter_client.search("#appsec")
-        (0..limit-1).each do |l|
-          t = list.to_a[SecureRandom.random_number(list.count)]
-          $logger.debug "retwitting #{t["from_user"]}: #{t["text"]}"
-          begin
-            # $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
-            $twitter_client.retweet(t)
-          rescue => e
-            $logger.err("error tweeting #{t["text"]}: #{e.message}")
+        unless list.nil? || list.empty? || list.to_a.nil?
+          (0..limit-1).each do |l|
+            t = list.to_a[SecureRandom.random_number(list.count)]
+            $logger.debug "retwitting #{t["from_user"]}: #{t["text"]}"
+            begin
+              # $twitter_client.update("#{t.text} //cc #{t.user.screen_name}")
+              $twitter_client.retweet(t)
+            rescue => e
+              $logger.err("error tweeting #{t["text"]}: #{e.message}")
+            end
+            sleep(15)
           end
-          sleep(15)
         end
       end
 
